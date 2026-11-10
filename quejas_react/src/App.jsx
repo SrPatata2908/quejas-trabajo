@@ -1,122 +1,117 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import api from './services/api';
+import QuejosoForm from './components/QuejosoForm';
+import QuejosoList from './components/QuejosoList';
+import QuejaForm from './components/QuejaForm';
+import QuejaList from './components/QuejaList';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [vistaActiva, setVistaActiva] = useState('quejas');
+  const [quejosos, setQuejosos] = useState([]);
+  const [quejas, setQuejas] = useState([]);
+  const [mensaje, setMensaje] = useState('');
+
+  // Cargar datos reales desde CodeIgniter 4 y MySQL
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const [resQuejosos, resQuejas] = await Promise.all([
+          api.get('/quejosos'),
+          api.get('/quejas')
+        ]);
+        setQuejosos(resQuejosos.data);
+        setQuejas(resQuejas.data);
+      } catch (error) {
+        setMensaje('No se pudo conectar con CodeIgniter 4 en http://localhost:8080/api');
+      }
+    };
+    cargarDatos();
+  }, []);
+
+  // Registrar nuevo Quejoso en MySQL (POST)
+  const agregarQuejoso = async (nuevoQuejoso) => {
+    try {
+      setMensaje('');
+      const res = await api.post('/quejosos', nuevoQuejoso);
+      setQuejosos([res.data, ...quejosos]);
+      alert('Quejoso registrado correctamente en MySQL.');
+    } catch (error) {
+      const msg = error.response?.data?.error || 'Error al registrar quejoso.';
+      alert(msg);
+    }
+  };
+
+  // Registrar nueva Queja en MySQL (POST)
+  const agregarQueja = async (nuevaQueja) => {
+    try {
+      setMensaje('');
+      const res = await api.post('/quejas', nuevaQueja);
+      setQuejas([res.data, ...quejas]);
+      alert('Queja registrada correctamente en MySQL.');
+      return true;
+    } catch (error) {
+      const msg =
+        error.response?.data?.error ||
+        'Error al guardar la queja. Verifica que la matrícula exista en Quejosos.';
+      alert(msg);
+      return false;
+    }
+  };
+
+  // Actualizar estatus y fecha de cierre en MySQL (PUT)
+  const cambiarEstatusQueja = async (id_queja, nuevoEstatus) => {
+    const fecha_cierre =
+      nuevoEstatus === 'atendida' ? new Date().toISOString().split('T')[0] : '';
+
+    try {
+      const res = await api.put(`/quejas/${id_queja}`, {
+        estatus: nuevoEstatus,
+        fecha_cierre
+      });
+      setQuejas(quejas.map((q) => (q.id_queja === id_queja ? res.data : q)));
+    } catch (error) {
+      alert('No se pudo actualizar el estatus en la base de datos.');
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="contenedor-principal">
+      <header className="encabezado">
+        <h1>Buzón de Quejas</h1>
+        <nav className="navegacion">
+          <button
+            className={vistaActiva === 'quejas' ? 'btn-nav activo' : 'btn-nav'}
+            onClick={() => setVistaActiva('quejas')}
+          >
+            Gestión de Quejas
+          </button>
+          <button
+            className={vistaActiva === 'quejosos' ? 'btn-nav activo' : 'btn-nav'}
+            onClick={() => setVistaActiva('quejosos')}
+          >
+            Registro de Quejosos ({quejosos.length})
+          </button>
+        </nav>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {mensaje && (
+        <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+          {mensaje}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {vistaActiva === 'quejas' ? (
+        <main className="grid-layout">
+          <QuejaForm quejosos={quejosos} onAgregarQueja={agregarQueja} />
+          <QuejaList quejas={quejas} onCambiarEstatus={cambiarEstatusQueja} />
+        </main>
+      ) : (
+        <main className="grid-layout">
+          <QuejosoForm onAgregarQuejoso={agregarQuejoso} />
+          <QuejosoList quejosos={quejosos} />
+        </main>
+      )}
+    </div>
+  );
 }
-
-export default App
