@@ -14,17 +14,17 @@ export default defineConfig({
         description: 'Plataforma digital, avisos y buzón de quejas',
         theme_color: '#ffffff',
         icons: [
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
+  {
+    src: '/iconolobo.jpg',
+    sizes: '192x192', 
+    type: 'image/jpeg'
+  },
+  {
+    src: '/iconolobo.jpg',
+    sizes: '512x512',
+    type: 'image/jpeg'
+  }
+]
       }
     })
   ]
