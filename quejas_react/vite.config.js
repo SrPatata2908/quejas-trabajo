@@ -1,7 +1,31 @@
-import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-
-// https://vite.dev/config/
+import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
+ 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      manifest: {
+        name: 'Revista CRC Sede San José Chiapa/ Buzon de Quejas Sede San José Chiapa',
+        short_name: 'Revista/Buzón',
+        description: 'Plataforma digital, avisos y buzón de quejas',
+        theme_color: '#ffffff',
+        icons: [
+          {
+            src: '/pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      }
+    })
+  ]
 })
