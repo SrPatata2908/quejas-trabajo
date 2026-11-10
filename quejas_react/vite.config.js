@@ -18,7 +18,7 @@ export default defineConfig({
     src: '/iconolobo.jpg',
     sizes: '192x192', 
     type: 'image/jpeg'
-  },
+  },  
   {
     src: '/iconolobo.jpg',
     sizes: '512x512',

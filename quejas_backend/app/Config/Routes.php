@@ -17,6 +17,9 @@ $routes->group('api', function ($routes) {
             ->setStatusCode(200);
     });
 
+    // Login / registro automático de alumnos (y acceso admin)
+    $routes->post('login', 'Quejoso::login');
+
     // Rutas para Quejosos
     $routes->get('quejosos', 'Quejoso::index');
     $routes->post('quejosos', 'Quejoso::create');
@@ -25,5 +28,6 @@ $routes->group('api', function ($routes) {
     $routes->get('quejas', 'Quejas::index');
     $routes->post('quejas', 'Quejas::create');
     $routes->put('quejas/(:num)', 'Quejas::update/$1');
-    $routes->get('api/salones', 'Salones::index');
+    // Catálogo de salones (antes estaba como 'api/salones' dentro del grupo => /api/api/salones)
+    $routes->get('salones', 'Salones::index');
 });

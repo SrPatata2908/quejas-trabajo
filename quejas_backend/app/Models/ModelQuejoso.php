@@ -11,7 +11,7 @@ class ModelQuejoso extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $protectFields    = true;
-    protected $allowedFields    = ['clave', 'nombre', 'carrera'];
+    protected $allowedFields    = ['clave', 'nombre', 'carrera', 'anio'];
 
     protected bool $allowEmptyInserts = false;
     protected $useTimestamps = true;

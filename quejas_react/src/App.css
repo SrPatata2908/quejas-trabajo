@@ -179,3 +179,166 @@ th {
   background-color: #dcfce7;
   color: #166534;
 }
+/* ===== Login / sesión ===== */
+.login-pantalla {
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-tarjeta {
+  width: 100%;
+  max-width: 480px;
+}
+
+.login-titulo {
+  font-size: 1.6rem;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 18px;
+}
+
+.aviso-admin {
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.usuario-info {
+  color: #cbd5e1;
+}
+
+.mensaje-error,
+.mensaje-exito {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.mensaje-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.mensaje-exito {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.campo input:disabled {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Tablas, filtros y estatus ===== */
+.titulo-con-accion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.titulo-con-accion h2 {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.btn-secundario {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-secundario:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.texto-suave {
+  color: #64748b;
+}
+
+.badge-estatus {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resumen-admin {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.resumen-item {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  border-radius: 10px;
+  text-transform: capitalize;
+}
+
+.resumen-item strong {
+  font-size: 1.6rem;
+}
+
+.pestanas .btn-nav {
+  color: #334155;
+  border-color: #cbd5e1;
+  background: #fff;
+}
+
+.pestanas .btn-nav.activo {
+  color: #fff;
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+@media (max-width: 700px) {
+  .filtros,
+  .fila-doble,
+  .resumen-admin {
+    grid-template-columns: 1fr;
+  }
+
+  .encabezado {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
