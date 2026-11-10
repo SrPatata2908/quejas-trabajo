@@ -1,10 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 const TIPOS_DE_QUEJA = ['infraestructura', 'hardware', 'software', 'insumos'];
 const ESTATUS_OPCIONES = ['levantada', 'en proceso', 'atendida'];
 
 export default function QuejaForm({ quejosos, onAgregarQueja }) {
   const hoy = new Date().toISOString().split('T')[0];
+
+  // Estado para los salones que vienen de MySQL
+  const [salones, setSalones] = useState([
+    { id_salon: 1, nombre_salon: 'Aula 103' },
+    { id_salon: 2, nombre_salon: 'Química 104' },
+    { id_salon: 3, nombre_salon: 'Aula 105' },
+    { id_salon: 4, nombre_salon: 'Lab 106C' },
+    { id_salon: 5, nombre_salon: 'Aula 107' },
+    { id_salon: 6, nombre_salon: 'Aula 118' }
+  ]);
 
   const [formQueja, setFormQueja] = useState({
     matricula: '',
@@ -13,9 +24,25 @@ export default function QuejaForm({ quejosos, onAgregarQueja }) {
     tipo_queja: 'infraestructura',
     estatus: 'levantada',
     fecha_cierre: '',
-    ubicacion: '',
+    ubicacion: 'Aula 103',
     ubicacion_descripcion: ''
   });
+
+  // Consultar los salones del backend al abrir el formulario
+  useEffect(() => {
+    const obtenerSalones = async () => {
+      try {
+        const res = await api.get('/salones');
+        if (res.data && res.data.length > 0) {
+          setSalones(res.data);
+          setFormQueja((prev) => ({ ...prev, ubicacion: res.data[0].nombre_salon }));
+        }
+      } catch (error) {
+        console.warn('Usando salones locales de respaldo.');
+      }
+    };
+    obtenerSalones();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,7 +70,7 @@ export default function QuejaForm({ quejosos, onAgregarQueja }) {
         tipo_queja: 'infraestructura',
         estatus: 'levantada',
         fecha_cierre: '',
-        ubicacion: '',
+        ubicacion: salones[0]?.nombre_salon || 'Aula 103',
         ubicacion_descripcion: ''
       });
     }
@@ -59,7 +86,7 @@ export default function QuejaForm({ quejosos, onAgregarQueja }) {
             type="text"
             name="matricula"
             list="lista-matriculas"
-            placeholder="Selecciona o escribe matrícula registrada"
+            placeholder="Selecciona o escribe matrícula"
             value={formQueja.matricula}
             onChange={handleChange}
             required
@@ -101,24 +128,30 @@ export default function QuejaForm({ quejosos, onAgregarQueja }) {
           </div>
         </div>
 
+        {/* CUADRO COMBINADO (SELECT) DINÁMICO DESDE MYSQL */}
         <div className="campo">
-          <label>Ubicación</label>
-          <input
-            type="text"
+          <label>Ubicación (Selecciona el Salón)</label>
+          <select
             name="ubicacion"
-            placeholder="Ej. Edificio A, Aula 104"
             value={formQueja.ubicacion}
             onChange={handleChange}
             required
-          />
+            style={{ padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.95rem', background: '#fff' }}
+          >
+            {salones.map((s) => (
+              <option key={s.id_salon || s.nombre_salon} value={s.nombre_salon}>
+                {s.nombre_salon}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="campo">
-          <label>Descripción de la Ubicación (Opcional)</label>
+          <label>Detalles adicionales de Ubicación (Opcional)</label>
           <input
             type="text"
             name="ubicacion_descripcion"
-            placeholder="Ej. Segundo piso, junto al laboratorio de redes"
+            placeholder="Ej. Proyector izquierdo, fila del fondo"
             value={formQueja.ubicacion_descripcion}
             onChange={handleChange}
           />
@@ -129,7 +162,7 @@ export default function QuejaForm({ quejosos, onAgregarQueja }) {
           <textarea
             name="descripcion"
             rows="3"
-            placeholder="Describe el problema detalladamente..."
+            placeholder="Detalla el problema..."
             value={formQueja.descripcion}
             onChange={handleChange}
             required

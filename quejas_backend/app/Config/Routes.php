@@ -25,4 +25,5 @@ $routes->group('api', function ($routes) {
     $routes->get('quejas', 'Quejas::index');
     $routes->post('quejas', 'Quejas::create');
     $routes->put('quejas/(:num)', 'Quejas::update/$1');
+    $routes->get('api/salones', 'Salones::index');
 });

@@ -1,0 +1,5 @@
+cd C:\xampp\htdocs\quejas trabajo\quejas_backend
+php spark serve
+
+cd quejas_react
+npm run dev
