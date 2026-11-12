@@ -26,13 +26,14 @@ export default function MisQuejas({ quejas, cargando, onRecargar }) {
               <th>Ubicación</th>
               <th>Descripción</th>
               <th>Estatus</th>
+              <th>Atención</th>
               <th>Fecha de cierre</th>
             </tr>
           </thead>
           <tbody>
             {quejas.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center' }}>
+                <td colSpan="8" style={{ textAlign: 'center' }}>
                   Aún no has levantado ninguna queja.
                 </td>
               </tr>
@@ -48,6 +49,7 @@ export default function MisQuejas({ quejas, cargando, onRecargar }) {
                   </td>
                   <td>{q.descripcion}</td>
                   <td><EstatusBadge estatus={q.estatus} /></td>
+                  <td>{q.nota_atencion ? <span>{q.nota_atencion}</span> : <span className="texto-suave">—</span>}</td>
                   <td>{q.estatus === 'atendida' ? formatearFecha(q.fecha_cierre, true) : '—'}</td>
                 </tr>
               ))

@@ -19,7 +19,8 @@ class ModelQuejas extends Model
         'estatus',
         'fecha_cierre',
         'ubicacion',
-        'ubicacion_descripcion'
+        'ubicacion_descripcion',
+        'nota_atencion'
     ];
 
     protected bool $allowEmptyInserts = false;

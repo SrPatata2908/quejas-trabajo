@@ -1,4 +1,4 @@
-cd C:\xampp\htdocs\quejas trabajo\quejas_backend
+cd quejas_backend
 php spark serve
 
 cd quejas_react

@@ -3,26 +3,32 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Libraries\AdminToken;
+use App\Models\ModelAdmin;
 use App\Models\ModelQuejoso;
 
 class Quejoso extends BaseController
 {
-    /** Clave reservada que da acceso al panel de administración. */
-    private const CLAVE_ADMIN = 'admin';
-
     private function setCors()
     {
         $this->response->setHeader('Access-Control-Allow-Origin', '*')
-                       ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+                       ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Admin-Token')
                        ->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     }
 
     /** Normaliza texto para comparar nombres: minúsculas, sin acentos y sin espacios repetidos. */
     private function normalizar(string $texto): string
     {
-        $texto = mb_strtolower(trim(preg_replace('/\s+/', ' ', $texto)), 'UTF-8');
-        $sinAcentos = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $texto);
-        return $sinAcentos !== false && $sinAcentos !== '' ? preg_replace('/[^a-z0-9 ]/', '', $sinAcentos) : $texto;
+        $texto = mb_strtolower(trim(preg_replace('/\s+/u', ' ', $texto)), 'UTF-8');
+
+        // Quita acentos con intl (requisito de CI4); si no estuviera, usa un mapa simple
+        if (class_exists(\Normalizer::class)) {
+            $texto = preg_replace('/\p{Mn}/u', '', \Normalizer::normalize($texto, \Normalizer::FORM_D));
+        } else {
+            $texto = strtr($texto, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n']);
+        }
+
+        return $texto;
     }
 
     public function index()
@@ -68,7 +74,7 @@ class Quejoso extends BaseController
 
     /**
      * POST /api/login
-     * - clave "admin"  -> rol admin (no se guarda en quejosos).
+     * - clave de administrador (tabla administradores) + contraseña -> rol admin con token.
      * - clave nueva    -> se registra automáticamente.
      * - clave existente-> se valida el nombre; carrera y año se actualizan si cambiaron.
      */
@@ -87,11 +93,26 @@ class Quejoso extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'La matrícula / clave es obligatoria.']);
         }
 
-        // Acceso de administrador: solo requiere la clave reservada
-        if (mb_strtolower($clave, 'UTF-8') === self::CLAVE_ADMIN) {
+        // Administradores: se buscan en la tabla `administradores` y requieren contraseña
+        $admin = (new ModelAdmin())->where('LOWER(usuario)', mb_strtolower($clave, 'UTF-8'))->first();
+        if ($admin) {
+            $password = (string) ($json['password'] ?? '');
+
+            if ($password === '') {
+                return $this->response->setStatusCode(401)->setJSON([
+                    'requiere_password' => true,
+                    'error'             => 'Esta clave es de un administrador. Ingresa tu contraseña.',
+                ]);
+            }
+
+            if (!password_verify($password, $admin['password_hash'])) {
+                return $this->response->setStatusCode(401)->setJSON(['error' => 'Usuario o contraseña incorrectos.']);
+            }
+
             return $this->response->setJSON([
                 'rol'     => 'admin',
-                'quejoso' => ['clave' => self::CLAVE_ADMIN, 'nombre' => 'Administrador', 'carrera' => '', 'anio' => ''],
+                'token'   => AdminToken::generar($admin['usuario']),
+                'quejoso' => ['clave' => $admin['usuario'], 'nombre' => $admin['nombre'], 'carrera' => '', 'anio' => ''],
             ]);
         }
 

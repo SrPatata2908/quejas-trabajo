@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Libraries\AdminToken;
 use App\Models\ModelQuejas;
 use App\Models\ModelQuejoso;
 
@@ -14,7 +15,7 @@ class Quejas extends BaseController
     private function setCors()
     {
         $this->response->setHeader('Access-Control-Allow-Origin', '*')
-                       ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+                       ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Admin-Token')
                        ->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     }
 
@@ -26,6 +27,12 @@ class Quejas extends BaseController
     public function index()
     {
         $this->setCors();
+
+        // Un alumno solo puede consultar SUS quejas (?matricula=...). Ver todas requiere ser administrador.
+        $matriculaFiltro = trim((string) $this->request->getGet('matricula'));
+        if ($matriculaFiltro === '' && AdminToken::verificar($this->request->getHeaderLine('X-Admin-Token')) === null) {
+            return $this->response->setStatusCode(401)->setJSON(['error' => 'Sesión de administrador no válida o expirada.']);
+        }
 
         $model = new ModelQuejas();
         $model->select('quejas.*, quejosos.nombre AS nombre_quejoso, quejosos.carrera AS carrera_quejoso')
@@ -99,16 +106,26 @@ class Quejas extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Queja no encontrada']);
         }
 
-        $estatus = $json['estatus'] ?? null;
+        $actual  = $model->find($id);
+        $estatus = $json['estatus'] ?? $actual['estatus'];
         if (!in_array($estatus, self::ESTATUS, true)) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Estatus no válido.']);
         }
 
-        // La fecha de cierre la fija el servidor: hoy si queda atendida, nula en cualquier otro caso
-        $model->update($id, [
-            'estatus'      => $estatus,
-            'fecha_cierre' => $estatus === 'atendida' ? date('Y-m-d H:i:s') : null,
-        ]);
+        $cambios = ['estatus' => $estatus];
+
+        // La fecha de cierre la fija el servidor, y solo cuando el estatus realmente cambia
+        if ($estatus !== $actual['estatus']) {
+            $cambios['fecha_cierre'] = $estatus === 'atendida' ? date('Y-m-d H:i:s') : null;
+        }
+
+        // Nota de atención (opcional): el alumno la ve en su historial
+        if (array_key_exists('nota_atencion', $json)) {
+            $nota = trim((string) $json['nota_atencion']);
+            $cambios['nota_atencion'] = $nota !== '' ? $nota : null;
+        }
+
+        $model->update($id, $cambios);
 
         return $this->response->setJSON($model->find($id));
     }
